@@ -220,7 +220,10 @@ function renderCheckout() {
     return `<div class="summary-row"><div class="summary-copy"><b>${item.name}</b><small>על חשבון הבית</small>${selected.length ? `<div class="selected-options">${selected.map(line => `<span>${escapeHtml(line)}</span>`).join("")}</div><button class="edit-options" onclick="openCustomizer('${store.id}','${id}','edit')">עריכת בחירות</button>` : ""}</div>${qtyControl(id, quantity)}</div>`;
   }).join("");
   const hasPhone = /^\d{8,15}$/.test(store.recipient.phone);
-  $("#app").innerHTML = shell(`<section class="page-head"><button class="back" onclick="openStore('${store.id}')">→ חזרה לתפריט</button><h1>כמעט אצלך 🎁</h1><p>רק נסגור מתי, מה, ולמי מגיע הקרדיט.</p></section><section class="checkout"><div class="summary">${rows}</div><div class="recipient"><span>💌</span><div><small>ההזמנה תיפתח אצל</small><b>${store.recipient.name} · ${store.name}</b></div></div><div class="field"><label for="when">מתי בא לך?</label><input id="when" placeholder="למשל: מחר ב־10:30" value="${escapeHtml(state.when)}" oninput="updateField('when',this.value)"></div><div class="field"><label for="note">הערה קטנה (או דרישה של דיווה)</label><textarea id="note" placeholder="כל פרט שיעזור להכין את ההפתעה..." oninput="updateField('note',this.value)">${escapeHtml(state.note)}</textarea></div><div class="field"><label>כך תיראה ההודעה</label><div id="preview" class="preview">${escapeHtml(message())}</div></div><button class="wa-btn" ${hasPhone ? "" : "disabled"} onclick="openWhatsApp()">להזמין בוואטסאפ</button><p class="hint">${hasPhone ? "ייפתח צ׳אט מוכן. ההודעה תישלח רק אחרי שתלחצי ״שליחה״ בוואטסאפ." : "עדיין לא הוגדר מספר לחנות הזאת. אפשר לראות את ההודעה, אבל כפתור הוואטסאפ מחכה למספר אמיתי."}</p></section>`, false);
+  const whatsappControl = hasPhone
+    ? `<a id="wa-button" class="wa-btn" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener">להזמין בוואטסאפ</a>`
+    : `<button id="wa-button" class="wa-btn" disabled>להזמין בוואטסאפ</button>`;
+  $("#app").innerHTML = shell(`<section class="page-head"><button class="back" onclick="openStore('${store.id}')">→ חזרה לתפריט</button><h1>כמעט אצלך 🎁</h1><p>רק נסגור מתי, מה, ולמי מגיע הקרדיט.</p></section><section class="checkout"><div class="summary">${rows}</div><div class="recipient"><span>💌</span><div><small>ההזמנה תיפתח אצל</small><b>${store.recipient.name} · ${store.name}</b></div></div><div class="field"><label for="when">מתי בא לך?</label><input id="when" placeholder="למשל: מחר ב־10:30" value="${escapeHtml(state.when)}" oninput="updateField('when',this.value)"></div><div class="field"><label for="note">הערה קטנה (או דרישה של דיווה)</label><textarea id="note" placeholder="כל פרט שיעזור להכין את ההפתעה..." oninput="updateField('note',this.value)">${escapeHtml(state.note)}</textarea></div><div class="field"><label>כך תיראה ההודעה</label><div id="preview" class="preview">${escapeHtml(message())}</div></div>${whatsappControl}<p class="hint">${hasPhone ? "ייפתח צ׳אט מוכן. ההודעה תישלח רק אחרי שתלחצי ״שליחה״ בוואטסאפ." : "עדיין לא הוגדר מספר לחנות הזאת. אפשר לראות את ההודעה, אבל כפתור הוואטסאפ מחכה למספר אמיתי."}</p></section>`, false);
 }
 
 function openProfile() {
@@ -229,8 +232,21 @@ function openProfile() {
   scrollTo(0, 0);
 }
 
-function updateField(key, value) { state[key] = value; save(); $("#preview").textContent = message(); }
-function openWhatsApp() { const store = activeStore(); if (/^\d{8,15}$/.test(store.recipient.phone)) window.open(`https://wa.me/${store.recipient.phone}?text=${encodeURIComponent(message())}`, "_blank", "noopener"); }
+function whatsappUrl() {
+  const store = activeStore();
+  if (!/^\d{8,15}$/.test(store?.recipient.phone)) return "";
+  return `https://wa.me/${store.recipient.phone}?text=${encodeURIComponent(message().normalize("NFC"))}`;
+}
+
+function updateField(key, value) {
+  state[key] = value;
+  save();
+  $("#preview").textContent = message();
+  const button = $("#wa-button");
+  if (button?.tagName === "A") button.href = whatsappUrl();
+}
+
+function openWhatsApp() { const url = whatsappUrl(); if (url) window.open(url, "_blank", "noopener"); }
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
 function goHome() { renderHome(); scrollTo(0, 0); }
 function toast(text) { const element = $("#toast"); element.textContent = text; element.classList.add("show"); setTimeout(() => element.classList.remove("show"), 1800); }
