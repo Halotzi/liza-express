@@ -20,7 +20,7 @@ window.LIZA_DATA = {
         { id: "geek-wiki", name: "ויקי־חנון", description: "כל דבר גיקי אענה לך עליו בשמחה, תוך פירוט מוגזם שיגרום לך לכאב ראש.", image: "movie", photo: "assets/generated/geek-wiki.png", emoji: "🤓",
           extras: { label: "על מה חופרים?", required: true, values: ["מארוול", "לגו", "משחקי וידאו", "צ׳לסי", "איפה סבא, סבתא ובר גרים"] } },
         { id: "come-in-peace", name: "בואי בשלום", description: "כל דבר שנעשה יהיה מבורך, אז בואי נעשה משהו.", image: "pie", photo: "assets/generated/come-in-peace.png", emoji: "🕊️",
-          extras: { label: "מה עושים?", required: true, values: ["סרט", "הופעה", "מסעדה", "אימון", "טיילת", "החלקה על הקרח", "ים", "פיקניק", "אחר"] } },
+          extras: { label: "מה עושים?", required: true, values: ["סרט", "הופעה", "מסעדה", "צימר", "אימון", "טיילת", "החלקה על הקרח", "ים", "פיקניק", "אחר"] } },
         { id: "cheeky", name: "אפשר להיות קצת חוצפנית?", description: "עזרה בכל אשר תבחרי, בכל מקום ובכל שעה אני אהיה כאן בשבילך.", image: "blini", photo: "assets/generated/cheeky.png", emoji: "🙋‍♀️",
           extras: { label: "רמז קטן לליעד", required: false, values: ["תבוא לקחת אותי", "אני באה אליך", "אני ממש רוצה לקנות משהו"] } }
       ]

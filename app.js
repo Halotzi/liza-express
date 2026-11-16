@@ -11,6 +11,7 @@ if (state.storeId && !stores.some(store => store.id === state.storeId)) state = 
 let view = { page: "home", storeId: null };
 let activeCategory = "all";
 let filtersOpen = localStorage.getItem("liza-filters-open") === "true";
+let lockedScrollY = null;
 const save = () => localStorage.setItem("liza-express", JSON.stringify(state));
 const storeById = id => stores.find(store => store.id === id);
 const activeStore = () => storeById(state.storeId);
@@ -124,6 +125,7 @@ function confirmReplace(storeId, itemId) {
   const oldStore = activeStore();
   const nextStore = storeById(storeId);
   $("#modal-root").innerHTML = `<div class="modal-back" role="dialog" aria-modal="true"><div class="modal"><h2>להחליף חנות?</h2><p>העגלה שלך כרגע מ־<b>${oldStore.name}</b>. כדי להוסיף מ־<b>${nextStore.name}</b>, צריך לרוקן אותה קודם.</p><div class="modal-actions"><button class="danger" onclick="replaceCart('${storeId}','${itemId}')">כן, להחליף עגלה</button><button class="secondary" onclick="closeModal()">לא, לשמור את הבחירות</button></div></div></div>`;
+  lockPageScroll();
 }
 
 function replaceCart(storeId, itemId) {
@@ -142,6 +144,7 @@ function openCustomizer(storeId, itemId, mode = "add") {
   const textChoice = item.textChoice ? `<div class="option-group"><label class="custom-label" for="custom-text">${item.textChoice.label}${item.textChoice.required ? `<em>חובה</em>` : ""}</label><input class="custom-input" id="custom-text" value="${escapeHtml(selected.text || "")}" placeholder="${escapeHtml(item.textChoice.placeholder || "")}"></div>` : "";
   const extras = item.extras ? `<fieldset class="option-group"><legend>${item.extras.label}${item.extras.required ? `<em>חובה · אפשר לבחור כמה</em>` : `<small>אופציונלי</small>`}</legend>${item.extras.values.map(value => `<label class="option-row"><span>${value}</span><input type="checkbox" name="custom-extra" value="${escapeHtml(value)}" ${(selected.extras || []).includes(value) ? "checked" : ""}></label>`).join("")}</fieldset>` : "";
   $("#modal-root").innerHTML = `<div class="modal-back customizer-back" role="dialog" aria-modal="true"><div class="modal customizer"><button class="modal-close" onclick="closeModal()" aria-label="סגירה">×</button><div class="customizer-head"><span>${item.emoji || "🎁"}</span><div><h2>${item.name}</h2><p>${item.description}</p></div></div><div class="customizer-body">${choice}${textChoice}${extras}<p id="option-error" class="option-error" role="alert"></p></div><button class="custom-submit" onclick="saveCustomization('${storeId}','${itemId}','${mode}')">${mode === "edit" ? "שמירת שינויים" : "הוספה להזמנה"}</button></div></div>`;
+  lockPageScroll();
 }
 
 function saveCustomization(storeId, itemId, mode) {
@@ -163,7 +166,26 @@ function saveCustomization(storeId, itemId, mode) {
   else { openStore(storeId, true); toast("נוסף לעגלה עם כל הבחירות ✨"); }
 }
 
-function closeModal() { $("#modal-root").innerHTML = ""; }
+function lockPageScroll() {
+  if (lockedScrollY !== null) return;
+  lockedScrollY = window.scrollY;
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${lockedScrollY}px`;
+  document.body.style.width = "100%";
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  $("#modal-root").innerHTML = "";
+  if (lockedScrollY === null) return;
+  const restoreScrollY = lockedScrollY;
+  lockedScrollY = null;
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.width = "";
+  document.body.style.overflow = "";
+  scrollTo(0, restoreScrollY);
+}
 function checkout() { if (count()) { view = { page: "checkout", storeId: state.storeId }; renderCheckout(); scrollTo(0, 0); } }
 
 function selectionLines(itemId) {
